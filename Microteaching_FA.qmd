@@ -1,0 +1,257 @@
+---
+title: "Introduction to Factor Analysis"
+subtitle: "Comparison with PCA and Probabilistic PCA"
+author: "Yaxuan (Ellisa) Wang"
+date: today
+format: 
+  revealjs:
+    slide-number: true
+    transition: slide
+    theme: simple
+execute:
+  echo: false
+---
+
+# Introduction
+- We will focus on <span style="color:red;">**Factor Analysis (FA)**</span> 
+- Then, compare it with 
+  (i) <span style="color:blue;">**Principle Component Analysis (PCA)**</span>,
+  (ii) <span style="color:blue;">**Probabilistic PCA (PPCA)**</span>.
+- These methods are fundamental for **dimension reduction** and **generative modeling**.
+
+
+---
+
+## Factor Analysis (FA) Introduction
+\
+
+<span style="font-size: 46px;">**Problem Setup**</span>
+
+- Given a data matrix $\boldsymbol{X}$ with $n$ rows (observations) and $d$ columns (covariates).
+- Rows $\{\boldsymbol{x}_i^\top\}_{i=1}^n$ are *IID* samples from some **unknown distribution $p(\boldsymbol{x})$**.
+- The goal is to <span style="color:blue;">**estimate $p(\boldsymbol{x})$ efficiently**</span>.
+
+---
+
+## Example: 2--Dimensional Samples
+- Suppose $\boldsymbol{X}$ is a $100 \times 2$ matrix 
+- That is, $n=100$ samples, $d=2$ covariates
+
+:::{.figure}
+<div style="text-align: center;">
+![](MVN_data.png){width=65%}
+</div>
+:::
+
+## Example: Estimate $p(\boldsymbol{x})$
+
+- We assume a [**Bivariate Normal distribution**]{.underline}:
+$$
+p(\boldsymbol{x}) \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad
+\boldsymbol{\mu} \in \mathcal{R}^{2\times 1} \text{ and } \boldsymbol{\Sigma} \in \mathcal{R}^{2\times 2}
+$$
+- Fit by <span style="color:blue;">**Maximum Likelihood Estimation** (**MLE**)</span> of $\mu$ and $\Sigma$.
+
+:::{.figure}
+<div style="text-align: center;">
+![](MVN_mle.png){width=65%}
+</div>
+:::
+
+---
+
+## Parameter Explosion in High Dimensions
+
+- But, when <span style="color:blue;">**$d$ is large**</span>, this model becomes <span style="color:blue;">**impractical**</span>.
+
+::: {.columns}
+::: {.column width="60%"}
+- Number of parameters in $\Sigma$:
+$$
+  \frac{d(d+1)}{2}
+$$
+- Example: If $d = 50$, we estimate **1,325** parameters!
+:::
+
+::: {.column width="40%"}
+:::{.figure}
+<div style="text-align: center;">
+![](no_para.jpg){width=105%}
+</div>
+:::
+
+:::
+:::
+> **Issue:** High-dimensional covariance matrices require too many parameters.
+
+---
+
+## Factor Analysis: Latent Variable Approach
+\
+
+- We need a model with **fewer parameters**
+- <span style="color:red;">**FA**</span> reduces complexity by introducing <span style="color:red;">**latent variables**</span>.
+- It is a <span style="color:blue;">[**Generative Latent Variable Model**]{.underline}</span>, meaning:
+  - We can <span style="color:blue;">generate synthetic data</span>.
+  - The model will involve associating <span style="color:blue;">an unobserved latent vector</span> with each observed data point.
+
+---
+
+## Example: FA model with $\boldsymbol{X} \in \mathcal{R}^{500 \times 30}$
+
+:::{.figure}
+<div style="text-align: center;">
+![**Source:** [YouTube - Factor Analysis Explanation](https://www.youtube.com/watch?v=lJ0cXPoEozg)](FA_demo1.jpg){width=95%}
+</div>
+:::
+
+---
+
+## Example: FA model with $\boldsymbol{X} \in \mathcal{R}^{500 \times 30}$
+
+:::{.figure}
+<div style="text-align: center;">
+![**Source:** [YouTube - Factor Analysis Explanation](https://www.youtube.com/watch?v=lJ0cXPoEozg)](FA_demo2.jpg){width=68%}
+</div>
+:::
+
+---
+
+## Example: FA model with $\boldsymbol{X} \in \mathcal{R}^{500 \times 30}$
+
+:::{.figure}
+<div style="text-align: center;">
+![**Source:** [YouTube - Factor Analysis Explanation](https://www.youtube.com/watch?v=lJ0cXPoEozg)](FA_demo.jpg){width=95%}
+</div>
+:::
+
+
+---
+
+## FA Model Construction: 3 Components 
+\ 
+
+Assume **$L=2$**, i.e., FA model with **$2$ latent variables**
+
+1. Introduce two <span style="color:blue;">**latent factor loadings** $w_1$ and $w_2$</span> [*shared*]{.underline} across samples.
+2. Assign each sample [*specific*]{.underline} <span style="color:blue;">**latent variables**</span> $z_{i1}$ and $z_{i2}$, $i=1,...,n$.
+3. Add independent and [*specific*]{.underline} **error** $\epsilon_{i1}, \epsilon_{i2},..., \epsilon_{id}$, for $i=1,...,n$. 
+4. Use these latent variables to represent data efficiently.
+
+---
+
+## FA Model Construction
+
+For example, for the $i$-th sample $\boldsymbol{x}_i \in \mathcal{R}^{d\times 1}$
+
+$$
+\boldsymbol{x}_i = \boldsymbol{W}\boldsymbol{z}_i + \boldsymbol{\epsilon}_i
+$$
+
+- $\boldsymbol{W} \in \mathcal{R}^{d\times L}$: **Factor loadings matrix**
+- $\boldsymbol{z}_i \in \mathcal{R}^{L\times 1}$: **Latent variables**
+$$
+\boldsymbol{z}_i \sim \mathcal{MV}_L (\mathbf{0}, \mathbf{I})
+$$
+- $\boldsymbol{\epsilon}_i \in \mathcal{R}^{d\times 1}$: **Noise term** with <span style="color:blue;">*specific variance*</span>
+$$
+\boldsymbol{\epsilon}_i \sim  \mathcal{MV}_d (\mathbf{0}, \mathbf{\Psi}),
+\quad \text{where } \mathbf{\Psi}=diag\{\psi_1,...,\psi_d\}.
+$$
+
+
+
+# Comparing 
+\
+
+- **Factor analysis (FA) model** 
+
+- **Principal Component Analysis (PCA)**
+
+- **Probabilistic PCA (PPCA)**
+
+---
+
+
+## Principal Component Analysis (PCA)
+
+- Finds a **linear transformation** maximizing variance.
+- Uses **Singular Value Decomposition (SVD)**.
+- **Latent variable** $\boldsymbol{z}_i$ is <span style="color:red;">**deterministic**</span>, computed from data
+- **No** explicit noise modeling.
+
+> **Model:**
+$$
+\boldsymbol{x}_i = \boldsymbol{W}\boldsymbol{z}_i
+$$
+
+---
+
+## Probabilistic PCA (PPCA)
+- Extends PCA with a **probabilistic model**, 
+$\boldsymbol{x}_i = \boldsymbol{W}\boldsymbol{z}_i + \boldsymbol{\epsilon}_i$
+- Assumes latent variables follow a <span style="color:blue;">**standard normal distribution**</span>,  $$\boldsymbol{z}_i \sim \mathcal{MV}_L (\mathbf{0}, \mathbf{I})$$
+- Assumes error terms also follow a <span style="color:blue;">**normal distribution**</span>,  $$\boldsymbol{\epsilon}_i \sim \mathcal{MV}_d (\mathbf{0}, \sigma^2 \mathbf{I})$$
+
+> Noise covariance matrix: <span style="color:blue;">**Isotropic**</span> $\sigma^2 I$
+
+---
+
+## Factor Analysis (FA)
+- A similar **probabilistic model**, 
+$$\boldsymbol{x}_i = \boldsymbol{W}\boldsymbol{z}_i + \boldsymbol{\epsilon}_i$$
+- But <span style="color:green;">**more flexible**</span> than PPCA.
+- **Noise covariance** $\boldsymbol{\Psi}$ is still *diagonal* but is allowed to have <span style="color:green;">**per-variable**</span> noise levels.
+
+> Noise Model:
+$$
+\boldsymbol{\epsilon}_i \sim  \mathcal{MV}_d (\mathbf{0}, \mathbf{\Psi}),
+\quad \text{where } \mathbf{\Psi}=diag\{\psi_1,...,\psi_d\}.
+$$
+
+---
+
+## Comparison of FA, PCA, and PPCA
+\ 
+
+<table style="width:100%; border-collapse: collapse; text-align: center; border: 2px solid black;">
+  <tr style="border-bottom: 2px solid black;">
+    <th>Method</th>
+    <th>Noise Model</th>
+    <th>Probabilistic?</th>
+    <th>Noise Covariance</th>
+  </tr>
+  <tr>
+    <td><b>PCA</b></td>
+    <td><span style="color:red;">None</span></td>
+    <td><span style="color:red;">No</span></td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td><b>PPCA</b></td>
+    <td><span style="color:blue;">Isotropic Gaussian</span></td>
+    <td><span style="color:blue;">Yes</span></td>
+    <td>$\sigma^2 \boldsymbol{I}$</td>
+  </tr>
+  <tr>
+    <td><b>Factor Analysis</b></td>
+    <td><span style="color:green;">Variable-specific</span></td>
+    <td><span style="color:blue;">Yes</span></td>
+    <td>$\boldsymbol{\Psi}$(Diagonal)</td>
+  </tr>
+</table>
+
+---
+
+## Conclusion
+
+- <span style="color:red;">**PCA**</span>: is **simple**, **deterministic**, and the best for pure **dimensionality reduction**.
+- <span style="color:red;">**PPCA**</span>: extends PCA with a **probabilistic model**.
+- <span style="color:red;">**Factor Analysis**</span>: provides **flexibility** with **latent structures**; is the best for **high-dimensional** modeling **with noise**
+
+> These techniques form the basis of many modern **machine learning models**
+
+
+# Thank You! 🎉
+Any questions? 🚀
+
